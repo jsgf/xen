@@ -28,8 +28,22 @@ static const char const *sunxi_dt_compat[] __initdata =
     NULL
 };
 
+static const struct dt_device_match sunxi_blacklist_dev[] __initconst =
+{
+    /*
+     * These UARTs share a page with the Xen console UART, so we don't
+     * want to map them through.
+     */
+    DT_MATCH_PATH("/soc@01c00000/serial@01c28000"),
+    DT_MATCH_PATH("/soc@01c00000/serial@01c28400"),
+    DT_MATCH_PATH("/soc@01c00000/serial@01c28800"),
+    DT_MATCH_PATH("/soc@01c00000/serial@01c28c00"),
+    { /* sentinel */ },
+};
+
 PLATFORM_START(sunxi, "Allwinner A20")
     .compatible = sunxi_dt_compat,
+    .blacklist_dev = sunxi_blacklist_dev,
 PLATFORM_END
 
 /*
