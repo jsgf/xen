@@ -366,6 +366,9 @@ paging:
         bne   1b
 
 launch:
+        adr   r0, early_trap_vector
+        mcr   CP32(r0, VBAR_EL2)
+        
         ldr   r0, =init_stack        /* Find the boot-time stack */
         ldr   sp, [r0]
         add   sp, #STACK_SIZE        /* (which grows down from the top). */
@@ -376,12 +379,24 @@ launch:
         beq   start_xen              /* and disappear into the land of C */
         b     start_secondary        /* (to the appropriate entry point) */
 
+trap_early:
+        PRINT("\r\nEARLY TRAP\r\n")
 /* Fail-stop
  * r0: string explaining why */
 fail:   PRINT("- Boot failed -\r\n")
 1:      wfe
         b     1b
 
+        .align 5
+early_trap_vector:
+        .word 0                         /* 0x00 - Reset */
+        b trap_early                    /* 0x04 - Undefined Instruction */
+        b trap_early                    /* 0x08 - Supervisor Call */
+        b trap_early                    /* 0x0c - Prefetch Abort */
+        b trap_early                    /* 0x10 - Data Abort */
+        b trap_early                    /* 0x14 - Hypervisor */
+        b trap_early                    /* 0x18 - IRQ */
+        b trap_early                    /* 0x1c - FIQ */
 
 #ifdef EARLY_PRINTK
 /* Bring up the UART.
